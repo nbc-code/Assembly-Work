@@ -1,0 +1,142 @@
+//@author Ryan Banks - rmbanks
+//@author Noah Cantrell - nbc
+//
+//Programming assignment 1 - This builds a reverse-filled array and proceeds to sort it with an
+//implementation of selection sort which calls further procedures including find_smallest_index and swap.
+
+main:
+	SUBI SP, SP, #8
+	STUR LR, [SP, #0]
+	BL arrayBuilder
+	LDUR LR, [SP, #0]
+	ADDI SP, SP, #8
+
+	B selection_sort
+	
+//Make and fill reverse-sorted array
+arrayBuilder:
+	SUBI SP, SP, #8
+	STUR LR, [SP, #0]
+	ADD X0, X31, X31
+	ADDI X1, X31, #4
+	ADDI X9, X31, #1
+	ADDI X10, X31, #2
+	ADDI X11, X31, #4
+	ADDI X12, X31, #8
+	ADDI X13, X31, #16
+	STUR X13, [X0, #0]
+	STUR X12, [X0, #8]
+	STUR X11, [X0, #16]
+	STUR X10, [X0, #24]
+	STUR X9, [X0, #32]
+	LDUR LR, [SP, #0]
+	ADDI SP, SP, #8
+	ADDI X4, X31, #0 //X4 = Start index
+
+	//print initial array
+	PRNT X13
+	PRNT X12
+	PRNT X11
+	PRNT X10
+	PRNT X9
+	PRNL
+	PRNL
+
+	BR LR
+
+//Will assign X2 and X3 as the respective registers to swap
+find_smallest:
+	SUBI SP, SP, #64
+	STUR LR, [SP, #56]
+	STUR X9, [SP, #48]
+	STUR X10, [SP, #40]
+	STUR X11, [SP, #32]
+	STUR X12, [SP, #24]
+	STUR X13, [SP, #16]
+	STUR X14, [SP, #8]
+	STUR X15, [SP, #0]
+	ADD X5, X4, X31 //sets X5 to the start index (also return index)
+	ADD X9, X5, X31 //sets X9 to the start index (current smallest index)
+	ADD X12, X9, X31 //Sets X12 to the start index (current index for loop)
+	LSL X10, X9, #3 //Sets X10 to the address of the current smallest index
+	LDUR X11, [X10, #0] //Loads X11 to be the value of the current smallest
+	
+smallest_loop:
+	ADDI X12, X12, #1 //Increments current index
+	SUBS X15, X12, X1 //Checks to see if the current is within the array bounds
+	B.EQ continue //If the index is equal to the length of the array it ends
+	B.LT continue //If the index is less than the array length it continues on
+	LDUR X15, [SP, #0]
+	LDUR X14, [SP, #8]
+	LDUR X13, [SP, #16]
+	LDUR X12, [SP, #24]
+	LDUR X11, [SP, #32]
+	LDUR X10, [SP, #40]
+	LDUR X9, [SP, #48]
+	LDUR LR, [SP, #56]
+	ADDI SP, SP, #64
+	BR LR
+
+continue:
+	LSL X13, X12, #3 //Sets X13 to be the address of the current index
+	LDUR X14, [X13, #0] //Loads X14 to the value of the current index
+	SUBS X15, X14, X11 //Checks to see if the current value is less than the current smallest
+	B.LT less_than //Current is smaller than current small
+	B.GE smallest_loop //Current is greater than or equal to current small
+
+less_than:
+	ADD X5, X31, X12 //Sets new return index to the current index
+	ADD X9, X31, X12 //Sets current smallest index to the current index
+	ADD X10, X31, X13 //Sets the current smallest address to the current address
+	ADD X11, X31, X14 //Sets the current smallest value to the current value
+	B smallest_loop
+
+//X2 and X3 will be temp registers to move values around with
+swap:
+	ADDI X2, X5, #0
+	LSL X2, X2, #3
+	LDUR X9, [X2, #0]
+	
+	ADDI X3, X4, #0
+	LSL X3, X3, #3
+	LDUR X13, [X3, #0]
+
+	STUR X9, [X3, #0]
+	STUR X13, [X2, #0]
+	
+	BR LR
+
+selection_sort:
+	SUBS XZR, X4, X1//Check array bounds
+	B.GE end
+
+	SUBI SP, SP, #8
+	STUR LR, [SP, #0]
+	BL find_smallest
+	LDUR LR, [SP, #0]
+	ADDI SP, SP, #8
+
+	SUBI SP, SP, #8
+	STUR LR, [SP, #0]
+	BL swap
+	LDUR LR, [SP, #0]
+	ADDI SP, SP, #8
+
+	ADDI X4, X4, #1
+	B selection_sort
+
+//load and print sorted array
+end:
+	PRNL
+	LDUR X9, [X0, #0]
+	LDUR X10, [X0, #8]
+	LDUR X11, [X0, #16]
+	LDUR X12, [X0, #24]
+	LDUR X13, [X0, #32]
+	PRNT X9
+	PRNT X10
+	PRNT X11
+	PRNT X12
+	PRNT X13
+	PRNL
+	HALT
